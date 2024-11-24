@@ -3,6 +3,7 @@
 #include <queue>
 #include <climits>    // For INT_MAX
 #include <algorithm>  // For reverse and sort
+#include <string>     // For handling usernames
 using namespace std;
 
 // Total number of nodes (users) in the social network
@@ -307,7 +308,28 @@ private:
     }
 };
 
-// Driver program to demonstrate the MST functionality
+// Function to display the interactive menu
+void displayMenu() {
+    cout << "\n===== Social Network Menu =====\n";
+    cout << "1. Display Social Network's Adjacency List\n";
+    cout << "2. Perform Depth-First Search (DFS)\n";
+    cout << "3. Perform Breadth-First Search (BFS)\n";
+    cout << "4. Find Shortest Path between two users\n";
+    cout << "5. Display Maximum Spanning Tree (MST)\n";
+    cout << "6. Exit\n";
+    cout << "Please enter your choice (1-6): ";
+}
+
+// Function to get a valid node index based on username
+int getNodeIndex(const vector<string>& usernames, const string& name) {
+    for (int i = 0; i < usernames.size(); i++) {
+        if (usernames[i] == name)
+            return i;
+    }
+    return -1; // Not found
+}
+
+// Driver program to demonstrate all functionalities with interactive menu
 int main() {
     // Define usernames for each node (0 through 12)
     // Nodes 1 and 3 are deleted and hence have placeholder names
@@ -340,41 +362,78 @@ int main() {
     // Instantiate the Graph with edges and usernames
     Graph graph(edges, usernames);
 
-    // Display the social network's adjacency list
-    graph.printGraph();
-    cout << endl;
+    int choice;
+    do {
+        displayMenu();
+        cin >> choice;
 
-    // Perform Depth-First Search (DFS) starting from user 0 (Alice)
-    graph.depthFirstSearch(0);
-    cout << endl;
+        // Handle invalid input types
+        if (cin.fail()) {
+            cin.clear(); // Clear the error flag
+            cin.ignore(INT_MAX, '\n'); // Discard invalid input
+            choice = -1; // Set to invalid choice
+        }
 
-    // Perform Breadth-First Search (BFS) starting from user 0 (Alice)
-    graph.breadthFirstSearch(0);
-    cout << endl;
+        switch (choice) {
+        case 1:
+            graph.printGraph();
+            break;
+        case 2: {
+            // Prompt user for starting node
+            string startName;
+            cout << "Enter the username to start DFS: ";
+            cin >> startName;
+            int startIdx = getNodeIndex(usernames, startName);
+            if (startIdx == -1) {
+                cout << "User '" << startName << "' not found.\n";
+            }
+            else {
+                graph.depthFirstSearch(startIdx);
+            }
+            break;
+        }
+        case 3: {
+            // Prompt user for starting node
+            string startName;
+            cout << "Enter the username to start BFS: ";
+            cin >> startName;
+            int startIdx = getNodeIndex(usernames, startName);
+            if (startIdx == -1) {
+                cout << "User '" << startName << "' not found.\n";
+            }
+            else {
+                graph.breadthFirstSearch(startIdx);
+            }
+            break;
+        }
+        case 4: {
+            // Prompt user for start and end usernames
+            string startName, endName;
+            cout << "Enter the starting username: ";
+            cin >> startName;
+            cout << "Enter the ending username: ";
+            cin >> endName;
+            int startIdx = getNodeIndex(usernames, startName);
+            int endIdx = getNodeIndex(usernames, endName);
+            if (startIdx == -1 || endIdx == -1) {
+                cout << "One or both usernames not found.\n";
+            }
+            else {
+                graph.shortestPath(startIdx, endIdx);
+            }
+            break;
+        }
+        case 5:
+            graph.maximumSpanningTree();
+            break;
+        case 6:
+            cout << "Exiting the program. Goodbye!\n";
+            break;
+        default:
+            cout << "Invalid choice. Please enter a number between 1 and 6.\n";
+        }
 
-    // Demonstrate Shortest Path Functionality
-
-    // Example 1: Find shortest path from user 0 (Alice) to user 11 (Leo)
-    int startNode = 0;
-    int endNode = 11;
-    graph.shortestPath(startNode, endNode);
-    cout << endl;
-
-    // Example 2: Find shortest path from user 4 (Eve) to user 10 (Karl)
-    startNode = 4;
-    endNode = 10;
-    graph.shortestPath(startNode, endNode);
-    cout << endl;
-
-    // Example 3: Attempt to find a path involving a deleted user (user 1: Bob)
-    startNode = 0;
-    endNode = 1;  // Node 1 is deleted
-    graph.shortestPath(startNode, endNode);
-    cout << endl;
-
-    // Demonstrate Maximum Spanning Tree (MST) Functionality
-    graph.maximumSpanningTree();
-    cout << endl;
+    } while (choice != 6);
 
     return 0;
 }
