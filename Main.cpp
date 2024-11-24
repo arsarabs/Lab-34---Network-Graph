@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
-#include <queue>    // Included for BFS implementation
+#include <queue>
+#include <unordered_map>
 using namespace std;
 
 // Updated SIZE after deleting 2 nodes and adding 6 new nodes
@@ -10,16 +11,25 @@ struct Edge {
     int src, dest, weight;
 };
 
-typedef pair<int, int> Pair;  // Creates alias 'Pair' for the pair<int,int> data type
+typedef pair<int, int> Pair;  // Alias 'Pair' for the pair<int, int> data type
 
 class Graph {
 public:
     // A vector of vectors of Pairs to represent an adjacency list
     vector<vector<Pair>> adjList;
+    // Vector to store usernames corresponding to node IDs
+    vector<string> userNames;
 
     // Graph Constructor
-    Graph(vector<Edge> const& edges) {
-        // Resize the vector to hold SIZE elements of type vector<Pair>
+    Graph(vector<Edge> const& edges, vector<string> const& names) {
+        // Initialize userNames
+        if (names.size() != SIZE) {
+            cerr << "Error: Number of usernames provided does not match SIZE." << endl;
+            exit(EXIT_FAILURE);
+        }
+        userNames = names;
+
+        // Resize the adjacency list to hold SIZE elements of type vector<Pair>
         adjList.resize(SIZE);
 
         // Add edges to the undirected graph
@@ -35,16 +45,16 @@ public:
         }
     }
 
-    // Print the graph's adjacency list
+    // Print the graph's adjacency list with usernames
     void printGraph() {
-        cout << "Graph's adjacency list:" << endl;
+        cout << "Social Network's Adjacency List:" << endl;
         for (int i = 0; i < adjList.size(); i++) {
             // Skip deleted nodes (1 and 3)
             if (i == 1 || i == 3) continue;
 
-            cout << i << " --> ";
+            cout << userNames[i] << " --> ";
             for (Pair v : adjList[i])
-                cout << "(" << v.first << ", " << v.second << ") ";
+                cout << "(" << userNames[v.first] << ", " << v.second << ") ";
             cout << endl;
         }
     }
@@ -54,7 +64,7 @@ public:
         // Initialize a visited array
         vector<bool> visited(adjList.size(), false);
 
-        cout << "DFS Traversal starting from node " << start << ": ";
+        cout << "DFS Traversal starting from " << userNames[start] << ": ";
         // Call the recursive helper function
         _dfsUtil(start, visited);
         cout << endl;
@@ -72,16 +82,16 @@ public:
         visited[start] = true;
         q.push(start);
 
-        cout << "BFS Traversal starting from node " << start << ": ";
+        cout << "BFS Traversal starting from " << userNames[start] << ": ";
 
         while (!q.empty()) {
             // Dequeue a vertex from the queue and print it
             int current = q.front();
             q.pop();
-            cout << current << " ";
+            cout << userNames[current] << " ";
 
             // Get all adjacent vertices of the dequeued vertex
-            // If an adjacent has not been visited, mark it visited and enqueue it
+            // If an adjacent has not been visited and is not deleted, mark it visited and enqueue it
             for (auto& neighbor : adjList[current]) {
                 int adjVertex = neighbor.first;
                 if (!visited[adjVertex] && adjVertex != 1 && adjVertex != 3) {  // Skip deleted nodes
@@ -101,7 +111,7 @@ private:
 
         // Mark the current node as visited and print it
         visited[v] = true;
-        cout << v << " ";
+        cout << userNames[v] << " ";
 
         // Recur for all the vertices adjacent to this vertex
         for (auto& neighbor : adjList[v]) {
@@ -114,26 +124,44 @@ private:
 };
 
 int main() {
+    // Define usernames for each node (0 through 12)
+    // Nodes 1 and 3 are deleted and hence have placeholder names
+    vector<string> usernames = {
+        "Alice",      // 0
+        "Bob",        // 1 (deleted)
+        "Charlie",    // 2
+        "David",      // 3 (deleted)
+        "Eve",        // 4
+        "Frank",      // 5
+        "Grace",      // 6
+        "Heidi",      // 7
+        "Ivan",       // 8
+        "Judy",       // 9
+        "Karl",       // 10
+        "Leo",        // 11
+        "Mallory"     // 12
+    };
+
     // Creates a vector of graph edges/weights
     vector<Edge> edges = {
         // Existing edges after deleting nodes 1 and 3 with updated weights
-        {0,2,10}, {2,6,5}, {5,6,7}, {4,5,12}, {2,4,6}, {2,5,9},
+        {0, 2, 10}, {2, 6, 5}, {5, 6, 7}, {4, 5, 12}, {2, 4, 6}, {2, 5, 9},
 
         // New edges involving added nodes with new weights
-        {0,7,15}, {7,8,4}, {8,9,8}, {9,10,3}, {10,11,9}, {11,12,2}, {12,0,11},
-        {7,12,6}, {8,10,7}, {5,9,10}
+        {0, 7, 15}, {7, 8, 4}, {8, 9, 8}, {9, 10, 3}, {10, 11, 9}, {11, 12, 2},
+        {12, 0, 11}, {7, 12, 6}, {8, 10, 7}, {5, 9, 10}
     };
 
     // Creates graph
-    Graph graph(edges);
+    Graph graph(edges, usernames);
 
     // Prints adjacency list representation of graph
     graph.printGraph();
 
-    // Perform Depth-First Search (DFS) starting from node 0
+    // Perform Depth-First Search (DFS) starting from "Alice" (node 0)
     graph.depthFirstSearch(0);
 
-    // Perform Breadth-First Search (BFS) starting from node 0
+    // Perform Breadth-First Search (BFS) starting from "Alice" (node 0)
     graph.breadthFirstSearch(0);
 
     return 0;
