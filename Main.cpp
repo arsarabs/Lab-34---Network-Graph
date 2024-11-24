@@ -2,7 +2,7 @@
 #include <vector>
 #include <queue>
 #include <climits>    // For INT_MAX
-#include <algorithm>  // For reverse
+#include <algorithm>  // For reverse and sort
 using namespace std;
 
 // Total number of nodes (users) in the social network
@@ -15,6 +15,40 @@ struct Edge {
 
 // Alias 'Pair' for a pair of integers (used in priority queue for Dijkstra's)
 typedef pair<int, int> Pair;
+
+// Structure to represent an edge for MST (src, dest, weight)
+struct MST_Edge {
+    int src, dest, weight;
+};
+
+// Comparator for sorting edges in descending order of weight (for MaxST)
+bool compareEdges(const MST_Edge& a, const MST_Edge& b) {
+    return a.weight > b.weight;
+}
+
+// Union-Find (Disjoint Set) Structure for Kruskal's Algorithm
+struct UnionFind {
+    vector<int> parent;
+    UnionFind(int size) : parent(size, -1) {}
+
+    // Find the set of an element with path compression
+    int findSet(int i) {
+        if (parent[i] == -1)
+            return i;
+        return parent[i] = findSet(parent[i]);
+    }
+
+    // Union two sets
+    bool unionSet(int x, int y) {
+        int s1 = findSet(x);
+        int s2 = findSet(y);
+        if (s1 != s2) {
+            parent[s1] = s2;
+            return true;
+        }
+        return false;
+    }
+};
 
 // Graph class to represent the social network
 class Graph {
@@ -48,7 +82,7 @@ public:
             adjList[dest].push_back(make_pair(src, weight));
         }
     }
-     
+
     // Function to print the social network's adjacency list with usernames and friendship strengths
     void printGraph() {
         cout << "\nSocial Network Topology:\n";
@@ -61,7 +95,7 @@ public:
             for (Pair v : adjList[i]) {
                 // Skip connections to deleted nodes
                 if (v.first == 1 || v.first == 3) continue;
-                cout << " -> User " << v.first << " (" << userNames[v.first] << ") - Friendship Strength: " << v.second << "\n";
+                cout << "  -> User " << v.first << " (" << userNames[v.first] << ") - Friendship Strength: " << v.second << "\n";
             }
             cout << endl;
         }
@@ -205,6 +239,53 @@ public:
         cout << "\n";
     }
 
+    // Function to compute the Maximum Spanning Tree (MST) using Kruskal's Algorithm
+    void maximumSpanningTree() {
+        // Step 1: Gather all edges, avoiding duplicates and deleted nodes
+        vector<MST_Edge> allEdges;
+        for (int src = 0; src < adjList.size(); src++) {
+            if (src == 1 || src == 3) continue; // Skip deleted nodes
+            for (auto& pair : adjList[src]) {
+                int dest = pair.first;
+                int weight = pair.second;
+                if (src < dest && dest != 1 && dest != 3) { // Avoid duplicates and skip deleted nodes
+                    allEdges.push_back(MST_Edge{ src, dest, weight });
+                }
+            }
+        }
+
+        // Step 2: Sort all edges in descending order of weight
+        sort(allEdges.begin(), allEdges.end(), compareEdges);
+
+        // Step 3: Initialize Union-Find structure
+        UnionFind uf(SIZE);
+
+        // Step 4: Iterate through sorted edges and construct MST
+        vector<MST_Edge> mst;
+        int mstWeight = 0;
+
+        for (auto& edge : allEdges) {
+            if (uf.unionSet(edge.src, edge.dest)) {
+                mst.push_back(edge);
+                mstWeight += edge.weight;
+            }
+            // If MST has (SIZE - number of deleted nodes - 1) edges, we can stop early
+            if (mst.size() == (SIZE - 2 - 1)) { // SIZE - deleted nodes -1
+                break;
+            }
+        }
+
+        // Step 5: Print the MST
+        cout << "\nMaximum Spanning Tree (MST) using Kruskal's Algorithm:\n";
+        cout << "===============================================\n";
+        cout << "Edges in the MST:\n";
+        for (auto& edge : mst) {
+            cout << "  -> User " << edge.src << " (" << userNames[edge.src] << ") -- User " << edge.dest << " (" << userNames[edge.dest] << ") == Friendship Strength: " << edge.weight << "\n";
+        }
+        cout << "Total Friendship Strength of MST: " << mstWeight << "\n";
+        cout << "===============================================\n";
+    }
+
 private:
     // Helper function for DFS
     void _dfsUtil(int v, vector<bool>& visited) {
@@ -226,6 +307,7 @@ private:
     }
 };
 
+// Driver program to demonstrate the MST functionality
 int main() {
     // Define usernames for each node (0 through 12)
     // Nodes 1 and 3 are deleted and hence have placeholder names
@@ -288,6 +370,10 @@ int main() {
     startNode = 0;
     endNode = 1;  // Node 1 is deleted
     graph.shortestPath(startNode, endNode);
+    cout << endl;
+
+    // Demonstrate Maximum Spanning Tree (MST) Functionality
+    graph.maximumSpanningTree();
     cout << endl;
 
     return 0;
