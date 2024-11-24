@@ -3,7 +3,8 @@
 #include <queue>    // Included for BFS implementation
 using namespace std;
 
-const int SIZE = 7;
+// Updated SIZE after deleting 2 nodes and adding 6 new nodes
+const int SIZE = 13;  // Nodes 0 through 12
 
 struct Edge {
     int src, dest, weight;
@@ -38,6 +39,9 @@ public:
     void printGraph() {
         cout << "Graph's adjacency list:" << endl;
         for (int i = 0; i < adjList.size(); i++) {
+            // Skip deleted nodes (1 and 3)
+            if (i == 1 || i == 3) continue;
+
             cout << i << " --> ";
             for (Pair v : adjList[i])
                 cout << "(" << v.first << ", " << v.second << ") ";
@@ -80,7 +84,7 @@ public:
             // If an adjacent has not been visited, mark it visited and enqueue it
             for (auto& neighbor : adjList[current]) {
                 int adjVertex = neighbor.first;
-                if (!visited[adjVertex]) {
+                if (!visited[adjVertex] && adjVertex != 1 && adjVertex != 3) {  // Skip deleted nodes
                     visited[adjVertex] = true;
                     q.push(adjVertex);
                 }
@@ -92,6 +96,9 @@ public:
 private:
     // Helper function for DFS
     void _dfsUtil(int v, vector<bool>& visited) {
+        // Skip deleted nodes
+        if (v == 1 || v == 3) return;
+
         // Mark the current node as visited and print it
         visited[v] = true;
         cout << v << " ";
@@ -99,7 +106,7 @@ private:
         // Recur for all the vertices adjacent to this vertex
         for (auto& neighbor : adjList[v]) {
             int adjVertex = neighbor.first;
-            if (!visited[adjVertex]) {
+            if (!visited[adjVertex] && adjVertex != 1 && adjVertex != 3) {  // Skip deleted nodes
                 _dfsUtil(adjVertex, visited);
             }
         }
@@ -109,8 +116,12 @@ private:
 int main() {
     // Creates a vector of graph edges/weights
     vector<Edge> edges = {
-        // (x, y, w) -> edge from x to y having weight w
-        {0,1,12},{0,2,8},{0,3,21},{2,3,6},{2,6,2},{5,6,6},{4,5,9},{2,4,4},{2,5,5}
+        // Existing edges after deleting nodes 1 and 3 with updated weights
+        {0,2,10}, {2,6,5}, {5,6,7}, {4,5,12}, {2,4,6}, {2,5,9},
+
+        // New edges involving added nodes with new weights
+        {0,7,15}, {7,8,4}, {8,9,8}, {9,10,3}, {10,11,9}, {11,12,2}, {12,0,11},
+        {7,12,6}, {8,10,7}, {5,9,10}
     };
 
     // Creates graph
